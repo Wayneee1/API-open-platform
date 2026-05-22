@@ -1,0 +1,38 @@
+server:
+  port: 8091
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: api_route
+          uri: http://localhost:8123
+          predicates:
+            - Path=/api/**
+#        - id: path_route
+#          uri: https://news.gmw.cn
+#          predicates:
+#            - Path=/2024-01/**
+#        - id: path_route2
+#          uri: https://yupi.icu
+#          predicates:
+#            - Path=/api/**
+
+logging:
+  level:
+    org:
+      springframework:
+        cloud:
+          gateway: trace
+
+# application.yml (Spring Boot)
+dubbo:
+  application:
+    # 设置应用的名称
+    name: dubbo-springboot-demo-provider
+  # 指定使用Dubbo协议，且端口设置为-1，表示随机分配可用端口
+  protocol:
+    name: dubbo
+    port: 22223
+  registry:
+    id: nacos-registry
+    address: nacos://localhost:8848
