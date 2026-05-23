@@ -33,3 +33,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Root frontend leftovers ###
+/node_modules/
+/src/.umi/
+/package-lock.json
+/yarn.lock
