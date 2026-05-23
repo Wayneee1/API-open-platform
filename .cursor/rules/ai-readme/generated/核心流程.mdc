@@ -1,0 +1,64 @@
+---
+description: "核心流程 - 主要业务调用链；当需要理解系统运行方式时使用"
+alwaysApply: false
+---
+# 核心流程
+
+## 流程清单
+
+| 优先级 | 流程名称 | 入口 | 备注 |
+| --- | --- | --- | --- |
+| P0 | 开发者调用开放接口 | `WayneApiClient#getUsernameByPost` | 经网关鉴权后转发到接口服务 |
+| P0 | 接口发布与下线 | `/interfaceInfo/online`、`/interfaceInfo/offlinee` | 管理员操作，发布前会尝试调用验证 |
+| P1 | 调用次数统计 | `CustomGlobalFilter#handleResponse` | 响应成功后通过 Dubbo 扣减次数并累加总次数 |
+| P1 | 热门接口分析 | `/analysis/top/interface/invoke` | 查询调用次数 Top 接口 |
+
+## 流程 1：SDK 调用开放接口
+
+```mermaid
+sequenceDiagram
+    participant App as 开发者应用
+    participant SDK as WayneApiClient
+    participant Gateway as API Gateway
+    participant Backend as Backend Dubbo Service
+    participant API as wayneapi-interface
+
+    App->>SDK: 传入业务参数
+    SDK->>SDK: 生成 accessKey、nonce、timestamp、body、sign
+    SDK->>Gateway: POST /api/name/user
+    Gateway->>Backend: 根据 accessKey 查询调用用户
+    Gateway->>Gateway: 校验 nonce、timestamp、sign
+    Gateway->>Backend: 校验接口 URL 与 method
+    Gateway->>API: 转发请求
+    API-->>Gateway: 返回接口结果
+    Gateway->>Backend: 调用次数 -1，总次数 +1
+    Gateway-->>SDK: 返回响应
+```
+
+## 流程 2：接口发布
+
+```mermaid
+sequenceDiagram
+    participant Admin as 管理员
+    participant Backend as 管理后端
+    participant SDK as WayneApiClient
+    participant Gateway as API Gateway
+    participant API as 示例接口
+
+    Admin->>Backend: POST /interfaceInfo/online
+    Backend->>Backend: 校验接口存在
+    Backend->>SDK: 发起测试调用
+    SDK->>Gateway: 携带签名头请求示例接口
+    Gateway->>API: 转发
+    API-->>Backend: 返回测试结果
+    Backend->>Backend: 更新接口状态为 ONLINE
+```
+
+## 关键调用链
+
+1. `WayneApiClient#getHeaderMap`：构造 AK/SK 签名请求头。
+2. `CustomGlobalFilter#filter`：统一鉴权、防重放、接口匹配。
+3. `InnerUserServiceImpl#getInvokeUser`：根据 accessKey 查询调用用户。
+4. `InnerInterfaceInfoServiceImpl#getInterfaceInfo`：根据 URL 和方法匹配接口。
+5. `UserInterfaceInfoServiceImpl#invokeCount`：原子扣减剩余次数并累计总次数。
+

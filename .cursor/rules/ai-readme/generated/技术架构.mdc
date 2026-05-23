@@ -1,0 +1,46 @@
+---
+description: "技术架构 - 分层架构和技术栈清单；当需要了解技术选型时使用"
+alwaysApply: false
+---
+# 技术架构
+
+## 架构总览
+
+```mermaid
+flowchart TD
+    User[用户 / 管理端] --> BackendController[管理后端 Controller]
+    Developer[开发者应用] --> SDK[Client SDK]
+    SDK --> Gateway[API Gateway GlobalFilter]
+    Gateway --> OpenAPI[开放接口服务]
+    Gateway -. Dubbo .-> InnerService[Backend Inner Services]
+    BackendController --> Service[Service]
+    Service --> Mapper[MyBatis-Plus Mapper]
+    Mapper --> MySQL[(MySQL)]
+    InnerService -. Registry .-> Nacos[(Nacos)]
+```
+
+## 分层说明
+
+| 分层 | 职责 | 主要类 / 文件 |
+| --- | --- | --- |
+| 接入层 | 接收 REST 请求、参数校验、权限注解控制 | `UserController`、`InterfaceInfoController`、`AnalysisController` |
+| 业务层 | 用户注册登录、接口发布下线、调用次数扣减 | `UserServiceImpl`、`InterfaceInfoServiceImpl`、`UserInterfaceInfoServiceImpl` |
+| 网关层 | AK/SK 鉴权、nonce/timestamp 防重放、接口匹配、响应增强 | `CustomGlobalFilter` |
+| SDK 层 | 生成签名请求头，封装 HTTP 调用 | `WayneApiClient`、`SignUtils` |
+| RPC 层 | 网关通过 Dubbo 调用后端内部服务 | `InnerUserService`、`InnerInterfaceInfoService`、`InnerUserInterfaceInfoService` |
+| 持久层 | MySQL 表结构、MyBatis-Plus CRUD 和自定义统计 SQL | `Mapper.xml`、`sql/*.sql` |
+
+## 技术栈
+
+| 类目 | 技术 | 版本 / 配置 | 用途 |
+| --- | --- | --- | --- |
+| 语言 | Java | 8 语法，建议 JDK 17 构建 | 后端服务开发 |
+| 主框架 | Spring Boot | 2.7.0 / 2.6.13 | Web 服务、自动配置 |
+| 网关 | Spring Cloud Gateway | 2021.0.5 | API 统一入口、过滤器链 |
+| RPC | Apache Dubbo | 3.0.9 | 网关与后端内部服务通信 |
+| 注册中心 | Nacos | `localhost:8848` | Dubbo 服务注册发现 |
+| ORM | MyBatis-Plus | 3.5.1 | CRUD、分页、逻辑删除 |
+| 数据库 | MySQL | `yuapi` | 用户、接口、调用关系数据 |
+| 文档 | Knife4j | 3.0.3 | 接口调试文档 |
+| 工具库 | Hutool、Gson、Commons Lang3 | 见各模块 `pom.xml` | HTTP 调用、签名、JSON、字符串处理 |
+

@@ -1,0 +1,46 @@
+---
+description: "开发指南 - 环境准备、启动命令、配置说明；当需要设置开发环境时使用"
+alwaysApply: false
+---
+# 开发指南
+
+## 环境准备
+
+| 工具 | 建议版本 | 说明 |
+| --- | --- | --- |
+| JDK | 17 或 8 | 当前代码用 JDK 17 验证通过；JDK 21 会触发旧 Lombok 与 javac 兼容问题 |
+| Maven | 3.8+ | 项目包含多个 Maven 工程，但根 `pom.xml` 不是聚合父工程 |
+| MySQL | 5.7+ / 8.x | 默认库名 `yuapi` |
+| Nacos | 2.x | Dubbo 注册中心，默认 `localhost:8848` |
+| Redis | 可选 | 配置存在，当前 `session.store-type` 为 `none` |
+
+## 常用命令
+
+| 操作 | 命令 |
+| --- | --- |
+| 安装公共模块 | `mvn -DskipTests install -f wayneapi-common/pom.xml` |
+| 安装 SDK 模块 | `mvn -DskipTests install -f wayneapi-client-sdk/pom.xml` |
+| 编译网关 | `mvn -DskipTests compile -f wayneapi-gateway/pom.xml` |
+| 编译开放接口服务 | `mvn -DskipTests compile -f wayneapi-interface/pom.xml` |
+| 编译管理后端 | `mvn -DskipTests compile -f pom.xml` |
+| 运行测试 | `mvn test -f pom.xml` |
+
+## 启动顺序
+
+```mermaid
+flowchart LR
+    MySQL[启动 MySQL 并导入 sql] --> Nacos[启动 Nacos]
+    Nacos --> Backend[启动 wayne1api-backend :7529]
+    Backend --> Interface[启动 wayneapi-interface :8123]
+    Interface --> Gateway[启动 wayneapi-gateway :8091]
+```
+
+## 配置文件清单
+
+| 文件 | 作用 |
+| --- | --- |
+| `src/main/resources/application.yml` | 管理后端端口、MySQL、Redis、Dubbo、Nacos 配置 |
+| `wayneapi-gateway/src/main/resources/application.yml` | 网关端口、路由、Dubbo 注册中心配置 |
+| `wayneapi-interface/src/main/resources/application.yml` | 示例接口端口、SDK AK/SK 配置 |
+| `sql/ddl.sql`、`sql/db.sql` | 数据库初始化脚本 |
+

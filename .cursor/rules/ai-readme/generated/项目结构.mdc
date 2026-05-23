@@ -1,0 +1,44 @@
+---
+description: "项目结构 - 目录树、模块划分、依赖关系；当需要了解代码组织时使用"
+alwaysApply: false
+---
+# 项目结构
+
+## 目录树
+
+```text
+wayne1api-backend
+|-- src/                         # 后端管理服务：用户、接口、调用关系、统计分析
+|-- wayneapi-client-sdk/          # 开发者调用 SDK：签名、请求封装、自动配置
+|-- wayneapi-common/              # 公共实体、VO、Dubbo 内部服务接口
+|-- wayneapi-gateway/             # Spring Cloud Gateway：鉴权、转发、调用统计
+|-- wayneapi-interface/           # 示例开放接口服务
+|-- sql/                          # 数据库建表脚本
+|-- doc/                          # 补充文档
+|-- pom.xml                       # 根后端服务 Maven 配置
+|-- README.md                     # GitHub 展示文档
+```
+
+## 模块职责
+
+| 目录 | 职责 | 关键文件 |
+| --- | --- | --- |
+| `src/` | 核心管理后端，提供用户、接口、调用关系和分析接口 | `MyApplication.java`、`InterfaceInfoController.java`、`UserServiceImpl.java` |
+| `wayneapi-client-sdk/` | 封装调用方请求、签名头、Spring Boot 自动配置 | `WayneApiClient.java`、`WayneApiClientConfig.java`、`SignUtils.java` |
+| `wayneapi-common/` | 跨模块共享的实体和 Dubbo 内部接口定义 | `InnerUserService.java`、`InterfaceInfo.java` |
+| `wayneapi-gateway/` | 统一入口，做 AK/SK 鉴权、接口存在性校验、调用次数扣减 | `CustomGlobalFilter.java` |
+| `wayneapi-interface/` | 示例 API 服务，作为网关转发目标 | `NameController.java` |
+| `sql/` | MySQL 初始化脚本 | `ddl.sql`、`db.sql` |
+
+## 模块依赖关系
+
+```mermaid
+flowchart TD
+    Backend[wayne1api-backend] --> Common[wayneapi-common]
+    Backend --> SDK[wayneapi-client-sdk]
+    Gateway[wayneapi-gateway] --> Common
+    Gateway --> SDK
+    Interface[wayneapi-interface] --> SDK
+    SDK --> Common
+```
+
