@@ -28,6 +28,7 @@
 | 接口文档 | Knife4j / Swagger |
 | 工具库 | Hutool、Gson、Apache Commons Lang3、Lombok |
 | 构建工具 | Maven |
+| 前端 | React 18、Ant Design Pro、Umi Max、TypeScript、ECharts |
 
 ## 系统架构
 
@@ -52,6 +53,7 @@ flowchart LR
 | `wayneapi-interface` | `8123` | 示例开放接口服务，模拟真实可调用 API |
 | `wayneapi-client-sdk` | - | Java 客户端 SDK，封装签名和 HTTP 请求 |
 | `wayneapi-common` | - | 公共实体类、VO、Dubbo 内部服务接口 |
+| `wayneapi-frontend` | `8000` | 管理端前端，提供登录、接口管理、在线调用、接口分析等页面 |
 
 ## 核心业务流程
 
@@ -103,6 +105,7 @@ wayne1api-backend
 |-- wayneapi-common/              # 公共实体和 Dubbo 接口
 |-- wayneapi-gateway/             # API 网关
 |-- wayneapi-interface/           # 示例开放接口
+|-- wayneapi-frontend/            # React 管理端前端
 |-- sql/                          # 数据库脚本
 |-- doc/                          # 项目补充文档
 |-- AGENTS.md                     # AI / 新成员项目上下文
@@ -188,6 +191,29 @@ mvn -DskipTests compile -f pom.xml
 ```text
 http://localhost:7529/api/doc.html
 ```
+
+### 6. 启动前端
+
+进入前端目录并安装依赖：
+
+```bash
+cd wayneapi-frontend
+npm install
+```
+
+本地开发启动：
+
+```bash
+npm run start:dev
+```
+
+默认访问地址：
+
+```text
+http://localhost:8000
+```
+
+前端默认通过后端接口访问 API 管理服务，开发时请先确保管理后端已启动在 `http://localhost:7529/api`。
 
 ## SDK 使用示例
 
